@@ -1,33 +1,87 @@
 const dbConnection = require("../db/dbConfig");
-
+const bcrypt = require("bcrypt");
+const httpStatus = require("http-status-codes");
+const jwt=require("jsonwebtoken");
 async function register(req, res) {
   const { username, firstName, lastName, email, password } = req.body;
 
   if (!username || !firstName || !lastName || !email || !password) {
-    return res.status(400).json({ msg: "All fields are required" });
+    return res.status(httpStatus.BAD_REQUEST).json({ msg: "All fields are required" });
   }
 
   if (password.length < 8) {
-    return res.status(400).json({ msg: "Password must be at least 8 characters" });
+    return res.status(httpStatus.BAD_REQUEST).json({ msg: "Password must be at least 8 characters" });
   }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(password, salt);
+
   try {
     const [user] = await dbConnection.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
     );
+
     if (user.length > 0) {
-      return res.status(400).json({ msg: "User already exists" });
+      return res.status(httpStatus.BAD_REQUEST).json({ msg: "User already exists" });
     }
+
     await dbConnection.query(
       "INSERT INTO users (username, firstName, lastName, email, password) VALUES (?, ?, ?, ?, ?)",
-      [username, firstName, lastName, email, password]
+      [username, firstName, lastName, email, hashPassword]
     );
 
+    return res.status(httpStatus.CREATED).json({ msg: "User created" });
 
-    return res.status(201).json({ msg: "User created" });
   } catch (error) {
     console.error("Register Error:", error.message);
-    return res.status(500).json({ msg: "Internal Server Error" });
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ msg: "Internal Server Error" });
   }
 }
-module.exports = { register };
+
+async function login(req, res) {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(httpStatus.BAD_REQUEST).json({ msg: "Email and password are required" });
+  }
+
+  try {
+    const [users] = await dbConnection.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(httpStatus.BAD_REQUEST).json({ msg: "Invalid email or password" });
+    }
+
+    const user = users[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(httpStatus.BAD_REQUEST).json({ msg: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { username: user.username, userid: user.userid },
+      "secret",
+      { expiresIn: "1d" }
+    );
+
+    // Optionally remove sensitive data
+    delete user.password;
+
+    return res.status(httpStatus.OK).json({
+      msg: "Login successful",
+      token,
+      user
+    });
+
+  } catch (error) {
+    console.error("Login Error:", error.message);
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ msg: "Internal Server Error" });
+  }
+}
+
+module.exports = { register,login};

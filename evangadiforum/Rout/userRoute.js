@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-const { register } = require("../controller/userController");
+const { register, login } = require("../controller/userController");
 
-router.post("/register", register); // ✅ real function
+router.post("/register", register); // ✅ Make sure this is a real function
+router.post("/login", login);
 
 module.exports = router;
