@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const port = 5500;
 
-const dbConnection = require("./db/dbconfig");
+const dbConnection = require("./db/dbConfig");
 const userRoutes = require("./Rout/userRoute");
 
 app.use(express.json());
