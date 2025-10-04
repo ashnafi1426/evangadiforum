@@ -83,5 +83,10 @@ async function login(req, res) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ msg: "Internal Server Error" });
   }
 }
+async function checkUser(req,res){
+  const username=req.user.username;
+  const userid=req.user.userid;
 
-module.exports = { register,login};
+res.status(httpStatus.ok).json({msg:"valid user",username,userid})
+}
+module.exports = { register,login,checkUser};
