@@ -1,27 +1,13 @@
 const express = require("express");
 const cors = require("cors");
+const questionRoute = require("./routes/questionRoute");
+
 const app = express();
-const port = 5500;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Important! Parses JSON body
 
-const dbConnection = require("./db/dbConfig");
+app.use("/api/questions", questionRoute);
 
-const userRoutes = require("./rout/userRoute");
-const questionRoutes = require("./rout/questionRoute");
-
-app.use("/api/users", userRoutes);
-app.use("/api/questions", questionRoutes);
-
-async function start() {
-  try {
-    const result = await dbConnection.execute("SELECT 'test'");
-    await app.listen(port);
-    console.log(`Server running on port ${port}`);
-    console.log(result);
-  } catch (error) {
-    console.log(error.message);
-  }
-}
-start();
+const PORT = 5500;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

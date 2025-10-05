@@ -18,5 +18,4 @@ function authMiddleware(req, res, next) {
     return res.status(StatusCodes.UNAUTHORIZED).json({ msg: "Authentication invalid" });
   }
 }
-
 module.exports = authMiddleware;
