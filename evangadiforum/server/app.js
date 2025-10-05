@@ -1,13 +1,24 @@
 const express = require("express");
+const cors = require("cors"); // ✅ require first
 const app = express();
 const port = 5500;
 
-const dbConnection = require("./db/dbConfig");
-const userRoutes = require("./Rout/userRoute");
-
+app.use(cors()); // ✅ now it's defined
 app.use(express.json());
-app.use("/api/users", userRoutes);
 
+const dbConnection = require("./db/dbConfig");
+
+// Routes
+const userRoutes = require("./rout/userRoute");
+const questionRoute = require("./rout/questionRoute");
+
+const authMiddleware = require("./middleware/authMiddleware");
+
+// Use routes
+app.use("/api/users", userRoutes);
+app.use("/api/question", authMiddleware, questionRoute);
+
+// Start server
 async function start() {
   try {
     const result = await dbConnection.execute("SELECT 'test'");
@@ -19,6 +30,3 @@ async function start() {
   }
 }
 start();
-
-
-

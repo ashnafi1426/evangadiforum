@@ -1,16 +1,18 @@
 const express=require("express")
 const router=express.Router();
-router.get("/",(req,res)=>{
-   res.send("Welcome");
-})
-//register rout
-router.post("/api/question/register",(req,res)=>{
-    res.send("register user")
-})
-router.post("/api/question/login",(req,res)=>{
-    res.send("login user")
-})
-router.get("/api/question/check",(req,res)=>{
-    res.send("check user")
-})
+const authMiddleware=require("../middleware/authMiddleware");
+const { askQuestion, getAllQuestions, answerQuestion } = require("../controller/questionController");
+//ask question
+router.post("/ask",authMiddleware,askQuestion);
+//get all question
+
+router.get("/all",authMiddleware,getAllQuestions)
+
+//answer a question
+router.post("/answer/:questionId", authMiddleware, answerQuestion);
+
+
+// router.get("/all-question",authMiddleware,(req,res)=>{
+//    res.send("all question");
+// })
 module.exports=router;
